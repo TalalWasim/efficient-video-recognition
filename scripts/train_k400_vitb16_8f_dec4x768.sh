@@ -3,20 +3,20 @@
 exp_dir=runs/k400_vitb16_8f_dec4x768
 
 mkdir -p "${exp_dir}"
-python -u -m torch.distributed.run --nproc_per_node 8 \
+python -u -m torch.distributed.run --nproc_per_node 2 \
   main.py \
     --num_steps 50000 \
     --backbone "ViT-B/16-lnpre" \
     --backbone_type clip \
-    --backbone_path /path/to/clip_models/ViT-B-16.pt \
+    --backbone_path ../pretrained/CLIP_ViT-B-16.pt \
     --decoder_num_layers 4 \
     --decoder_qkv_dim 768 \
     --decoder_num_heads 12 \
     --num_classes 400 \
     --checkpoint_dir "${exp_dir}" \
     --auto_resume \
-    --train_list_path /path/to/k400/train.txt \
-    --val_list_path /path/to/k400/val.txt \
+    --train_list_path ../datasets/kinetics-dataset/k400_resized/annotations_svt/train.txt \
+    --val_list_path ../datasets/kinetics-dataset/k400_resized/annotations_svt/val.txt \
     --batch_size 256 \
     --batch_split 1 \
     --auto_augment rand-m7-n4-mstd0.5-inc1 \
