@@ -8,7 +8,7 @@ python -u -m torch.distributed.run --nproc_per_node 2 \
     --num_steps 50000 \
     --backbone "ViT-B/16-lnpre" \
     --backbone_type clip \
-    --backbone_path ../pretrained/CLIP_ViT-B-16.pt \
+    --backbone_path ../pretrained/CLIP_ViT-B-16.pth \
     --decoder_num_layers 4 \
     --decoder_qkv_dim 768 \
     --decoder_num_heads 12 \
