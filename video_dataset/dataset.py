@@ -49,7 +49,7 @@ class VideoDataset(torch.utils.data.Dataset):
 
     def __getitem__(self, idx):
         line = self.data_list[idx]
-        path, label = line.split(' ')
+        path, label = line.split(',')
         path = os.path.join(self.data_root, path)
         label = int(label)
 

@@ -1,9 +1,9 @@
-#!/usr/bin/env sh
+#!/bin/bash
 
 exp_dir=runs/k400_vitb16_8f_dec4x768
 
 mkdir -p "${exp_dir}"
-python -u -m torch.distributed.run --nproc_per_node 2 \
+python -u -m torch.distributed.run --nproc_per_node 1 \
   main.py \
     --num_steps 50000 \
     --backbone "ViT-B/16-lnpre" \
@@ -15,8 +15,8 @@ python -u -m torch.distributed.run --nproc_per_node 2 \
     --num_classes 400 \
     --checkpoint_dir "${exp_dir}" \
     --auto_resume \
-    --train_list_path ../datasets/kinetics-dataset/k400_resized/annotations_svt/train.txt \
-    --val_list_path ../datasets/kinetics-dataset/k400_resized/annotations_svt/val.txt \
+    --train_list_path ../datasets/kinetics-dataset/k400_resized/annotations_svt/train.csv \
+    --val_list_path ../datasets/kinetics-dataset/k400_resized/annotations_svt/val.csv \
     --batch_size 256 \
     --batch_split 1 \
     --auto_augment rand-m7-n4-mstd0.5-inc1 \
