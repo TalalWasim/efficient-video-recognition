@@ -7,7 +7,7 @@
 #SBATCH --cpus-per-task=6
 #SBATCH --gres=gpu:16
 
-exp_dir=runs/k400_vitb16_8f_dec4x768_clip
+exp_dir=runs/clip_init/k400_vitb16_8f_dec4x768
 
 mkdir -p "${exp_dir}"
 python -u -m torch.distributed.run --nproc_per_node 16 \
@@ -15,7 +15,7 @@ python -u -m torch.distributed.run --nproc_per_node 16 \
     --num_steps 50000 \
     --backbone "ViT-B/16-lnpre" \
     --backbone_type clip \
-    --backbone_path ../pretrained/backbones_ViT/CLIP_ViT-B-16.pth \
+    --backbone_path ../pretrained/backbones_eff/CLIP_ViT-B-16.pth \
     --decoder_num_layers 4 \
     --decoder_qkv_dim 768 \
     --decoder_num_heads 12 \

@@ -58,12 +58,12 @@ def load_weights_clip(load_path: str) -> Dict[str, torch.Tensor]:
     return dst_state_dict
 
 def load_weights_dino(load_path: str) -> Dict[str, torch.Tensor]:
-    dino_model = torch.jit.load(load_path, map_location='cpu')
+    dino_model = torch.load(load_path, map_location='cpu')
 
     return dino_model
 
 def load_weights_mae(load_path: str) -> Dict[str, torch.Tensor]:
-    mae_model = torch.jit.load(load_path, map_location='cpu')
+    mae_model = torch.load(load_path, map_location='cpu')
 
     return mae_model
 
