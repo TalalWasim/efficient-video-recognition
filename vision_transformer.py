@@ -85,15 +85,12 @@ class Attention(nn.Module):
 
             k = k.transpose(1,3)
             v = v.transpose(1,3)
-            print(q.shape, k.shape, v.shape)
 
             k = self.E(k)
             v = self.F(v)
 
             k = k.transpose(1,3)
             v = v.transpose(1,3)
-            print(q.shape, k.shape, v.shape)
-            return
 
         aff = torch.einsum('nqhc,nkhc->nqkh', q / (Cqk ** 0.5), k)
         aff = aff.softmax(dim=-2)
