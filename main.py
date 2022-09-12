@@ -75,7 +75,11 @@ def main():
                         help='disable temporal position embeddings added to frame features')
     parser.add_argument('--no_temporal_cross_attention', action='store_false', dest='temporal_cross_attention',
                         help='disable temporal cross attention on frame query and key features')
-    parser.set_defaults(temporal_conv=True, temporal_pos_embed=True, temporal_cross_attention=True)
+    parser.add_argument('--use_custom_tap', action='store_true', dest='custom_tap',
+                        help='use custom tap rather than last N layers')
+    parser.set_defaults(temporal_conv=True, temporal_pos_embed=True, temporal_cross_attention=True, custom_tap=False)
+    parser.add_argument('--custom_tap_indices', nargs='*', type=int, default=[-1,-1,-1,-1],
+                        help='index list for custom tap locations')
 
     parser.add_argument('--lr', type=float, default=4e-4,
                         help='learning rate')
@@ -112,6 +116,8 @@ def main():
         cls_dropout=args.cls_dropout,
         decoder_mlp_dropout=args.decoder_mlp_dropout,
         num_frames=args.num_frames,
+        custom_tap=args.custom_tap,
+        custom_tap_indices=args.custom_tap_indices,
     )
     print(model)
     model.cuda()

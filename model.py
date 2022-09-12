@@ -162,8 +162,13 @@ class EVLTransformer(nn.Module):
         enable_temporal_cross_attention: bool = True,
         cls_dropout: float = 0.5,
         decoder_mlp_dropout: float = 0.5,
+        custom_tap: bool = False,
+        custom_tap_indices: list = [-1, -1, -1, -1],
     ):
         super().__init__()
+
+        self.custom_tap = custom_tap
+        self.custom_tap_indices = custom_tap_indices
 
         self.decoder_num_layers = decoder_num_layers
 
@@ -232,7 +237,13 @@ class EVLTransformer(nn.Module):
 
         B, C, T, H, W = x.size()
         x = x.permute(0, 2, 1, 3, 4).flatten(0, 1)
-        features = backbone(x)[-self.decoder_num_layers:]
+        features = backbone(x)
+
+        if self.custom_tap:
+            features = [features[i] for i in self.custom_tap_indices]
+        else:
+            features = features[-self.decoder_num_layers:]
+
         features = [
             dict((k, v.float().view(B, T, *v.size()[1:])) for k, v in x.items())
             for x in features
