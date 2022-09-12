@@ -83,6 +83,9 @@ class EVLDecoder(nn.Module):
         enable_temporal_pos_embed: bool = True,
         enable_temporal_cross_attention: bool = True,
         mlp_dropout: float = 0.5,
+        use_linformer: bool = False,
+        lin_input: int = 1576,
+        lin_k: int = 196
     ):
         super().__init__()
 
@@ -92,7 +95,8 @@ class EVLDecoder(nn.Module):
         self.num_layers = num_layers
 
         self.decoder_layers = nn.ModuleList(
-            [TransformerDecoderLayer(in_feature_dim, qkv_dim, num_heads, mlp_factor, mlp_dropout) for _ in range(num_layers)]
+            [TransformerDecoderLayer(in_feature_dim, qkv_dim, num_heads, mlp_factor, mlp_dropout,
+                                    use_linformer=use_linformer, lin_input=lin_input, lin_k=lin_k) for _ in range(num_layers)]
         )
 
         if enable_temporal_conv:
@@ -164,11 +168,21 @@ class EVLTransformer(nn.Module):
         decoder_mlp_dropout: float = 0.5,
         custom_tap: bool = False,
         custom_tap_indices: list = [-1, -1, -1, -1],
+        use_encoder_linformer: bool = False,
+        encoder_lin_input: int = 197,
+        encoder_lin_k: int = 64,
+        use_decoder_linformer: bool = False,
+        decoder_lin_input: int = 1576,
+        decoder_lin_k: int = 196
     ):
         super().__init__()
 
         self.custom_tap = custom_tap
         self.custom_tap_indices = custom_tap_indices
+
+        self.use_encoder_linformer = use_encoder_linformer
+        self.encoder_lin_input = encoder_lin_input
+        self.encoder_lin_k = encoder_lin_k
 
         self.decoder_num_layers = decoder_num_layers
 
@@ -188,6 +202,9 @@ class EVLTransformer(nn.Module):
             enable_temporal_pos_embed=enable_temporal_pos_embed,
             enable_temporal_cross_attention=enable_temporal_cross_attention,
             mlp_dropout=decoder_mlp_dropout,
+            use_linformer=use_decoder_linformer,
+            lin_input=decoder_lin_input,
+            lin_k=decoder_lin_k
         )
         self.proj = nn.Sequential(
             nn.LayerNorm(backbone_feature_dim),
@@ -206,7 +223,8 @@ class EVLTransformer(nn.Module):
         weight_loader_fn = weight_loader_fn_dict[backbone_type]
         state_dict = weight_loader_fn(backbone_path)
 
-        backbone = VisionTransformer2D(return_all_features=True, **vit_presets[backbone_name])
+        backbone = VisionTransformer2D(return_all_features=True, **vit_presets[backbone_name], use_linformer=self.use_encoder_linformer,
+                                        lin_input=self.encoder_lin_input, lin_k=self.encoder_lin_k)
         backbone.load_state_dict(state_dict, strict=True) # weight_loader_fn is expected to strip unused parameters
 
         assert backbone_mode in ['finetune', 'freeze_fp16', 'freeze_fp32']

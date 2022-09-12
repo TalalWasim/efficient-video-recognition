@@ -32,8 +32,9 @@ class Attention(nn.Module):
 
     def __init__(
         self, q_in_dim: int, k_in_dim: int, v_in_dim: int,
-        qk_proj_dim: int, v_proj_dim: int, num_heads: int, out_dim: int,
-        return_all_features: bool = False,
+        qk_proj_dim: int, v_proj_dim: int, num_heads: int,
+        out_dim: int, return_all_features: bool = False,
+        use_linformer: bool = False, lin_input: int=197, lin_k: int=64
     ):
         super().__init__()
 
@@ -46,6 +47,11 @@ class Attention(nn.Module):
         self.return_all_features = return_all_features
         assert qk_proj_dim % num_heads == 0 and v_proj_dim % num_heads == 0
 
+        self.use_linformer = use_linformer
+        if self.use_linformer:
+            self.E = nn.Linear(lin_input, lin_k) 
+            self.F = nn.Linear(lin_input, lin_k)
+
         self._initialize_weights()
 
 
@@ -53,6 +59,12 @@ class Attention(nn.Module):
         for m in (self.q_proj, self.k_proj, self.v_proj, self.out_proj):
             nn.init.xavier_uniform_(m.weight)
             nn.init.constant_(m.bias, 0.)
+        if self.use_linformer:
+            nn.init.xavier_uniform_(self.E.weight)
+            nn.init.constant_(self.E.bias, 0.)
+            nn.init.xavier_uniform_(self.F.weight)
+            nn.init.constant_(self.F.bias, 0.)
+
 
 
     def forward(self, q: torch.Tensor, k: torch.Tensor, v: torch.Tensor):
@@ -68,6 +80,20 @@ class Attention(nn.Module):
         q = q.view(N, Lq, H, Cqk)
         k = k.view(N, Lkv, H, Cqk)
         v = v.view(N, Lkv, H, Cv)
+
+        if self.use_linformer:
+
+            k = k.transpose(1,3)
+            v = v.transpose(1,3)
+            print(q.shape, k.shape, v.shape)
+
+            k = self.E(k)
+            v = self.F(v)
+
+            k = k.transpose(1,3)
+            v = v.transpose(1,3)
+            print(q.shape, k.shape, v.shape)
+            return
 
         aff = torch.einsum('nqhc,nkhc->nqkh', q / (Cqk ** 0.5), k)
         aff = aff.softmax(dim=-2)
@@ -124,6 +150,9 @@ class TransformerEncoderLayer(nn.Module):
         mlp_dropout: float = 0.0,
         act: nn.Module = QuickGELU,
         return_all_features: bool = False,
+        use_linformer: bool = False,
+        lin_input: int = 197,
+        lin_k: int = 64
     ):
         super().__init__()
 
@@ -132,7 +161,7 @@ class TransformerEncoderLayer(nn.Module):
         self.attn = Attention(
             q_in_dim=in_feature_dim, k_in_dim=in_feature_dim, v_in_dim=in_feature_dim,
             qk_proj_dim=qkv_dim, v_proj_dim=qkv_dim, num_heads=num_heads, out_dim=in_feature_dim,
-            return_all_features=return_all_features,
+            return_all_features=return_all_features, use_linformer=use_linformer, lin_input=lin_input, lin_k=lin_k
         )
 
         mlp_dim = round(mlp_factor * in_feature_dim)
@@ -190,12 +219,16 @@ class TransformerDecoderLayer(nn.Module):
         mlp_factor: float = 4.0,
         mlp_dropout: float = 0.0,
         act: nn.Module = QuickGELU,
+        use_linformer: bool = False,
+        lin_input: int = 1576,
+        lin_k: int = 196
     ):
         super().__init__()
 
         self.attn = Attention(
             q_in_dim=in_feature_dim, k_in_dim=in_feature_dim, v_in_dim=in_feature_dim,
             qk_proj_dim=qkv_dim, v_proj_dim=qkv_dim, num_heads=num_heads, out_dim=in_feature_dim,
+            use_linformer=use_linformer, lin_input=lin_input, lin_k=lin_k
         )
 
         mlp_dim = round(mlp_factor * in_feature_dim)
@@ -240,6 +273,9 @@ class VisionTransformer2D(nn.Module):
         act: nn.Module = QuickGELU,
         return_all_features: bool = False,
         ln_pre: bool = False,
+        use_linformer: bool = False,
+        lin_input: int = 196,
+        lin_k: int = 64
     ):
         super().__init__()
 
@@ -254,7 +290,7 @@ class VisionTransformer2D(nn.Module):
         self.blocks = nn.ModuleList([
             TransformerEncoderLayer(
                 in_feature_dim=feature_dim, qkv_dim=feature_dim, num_heads=num_heads, mlp_factor=mlp_factor, act=act,
-                return_all_features=return_all_features,
+                return_all_features=return_all_features, use_linformer=use_linformer, lin_input=lin_input, lin_k=lin_k
             ) for _ in range(num_layers)
         ])
 

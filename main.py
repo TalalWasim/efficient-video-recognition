@@ -92,6 +92,21 @@ def main():
     parser.add_argument('--batch_split', type=int, default=1,
                         help='optionally split the batch into smaller shards and forward/backward one shard '
                              'at a time to avoid out-of-memory error.')
+    
+    parser.add_argument('--use_encoder_linformer', action='store_true', dest='encoder_linformer',
+                        help='use linformer attention in encoder backbone')
+    parser.add_argument('--encoder_lin_input', type=int, default=197,
+                        help='number of input tokens in encoder linformer attention')
+    parser.add_argument('--encoder_lin_k', type=int, default=64,
+                        help='number of output tokens in encoder linformer attention')
+
+    parser.add_argument('--use_decoder_linformer', action='store_true', dest='decoder_linformer',
+                        help='use linformer attention in decoder')
+    parser.add_argument('--decoder_lin_input', type=int, default=1576,
+                        help='number of input tokens in decoder linformer attention')
+    parser.add_argument('--decoder_lin_k', type=int, default=196,
+                        help='number of output tokens in decoder linformer attention')
+    
 
     args = parser.parse_args()
 
@@ -118,6 +133,12 @@ def main():
         num_frames=args.num_frames,
         custom_tap=args.custom_tap,
         custom_tap_indices=args.custom_tap_indices,
+        use_encoder_linformer=args.encoder_linformer,
+        encoder_lin_input=args.encoder_lin_input,
+        encoder_lin_k=args.encoder_lin_k,
+        use_decoder_linformer=args.decoder_linformer,
+        decoder_lin_input=args.decoder_lin_input,
+        decoder_lin_k=args.decoder_lin_k,
     )
     print(model)
     model.cuda()
