@@ -7,7 +7,7 @@
 #SBATCH --cpus-per-task=6
 #SBATCH --gres=gpu:16
 
-exp_dir=runs/clip_init/k400_vitb16_8f_-2-3-4-5_x768
+exp_dir=runs/clip_init/k400_vitb16_8f_-1-1-1-1_x768
 
 mkdir -p "${exp_dir}"
 python -u -m torch.distributed.run --nproc_per_node 16 \
@@ -35,5 +35,5 @@ python -u -m torch.distributed.run --nproc_per_node 16 \
     --num_spatial_views 1 \
     --num_temporal_views 3 \
     --custom_tap \
-    --custom_tap_indices -2 -3 -4 -5 \
+    --custom_tap_indices -1 -1 -1 -1 \
   2>&1 | tee "${exp_dir}/train-$(date +"%Y%m%d_%H%M%S").log"

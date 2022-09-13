@@ -7,7 +7,7 @@
 #SBATCH --cpus-per-task=6
 #SBATCH --gres=gpu:16
 
-exp_dir=runs/clip_init/k400_vitb16_8f_-2-3-4-5_x768
+exp_dir=runs/clip_init/k400_vitb16_8f_dec4x768_dec_linformer_196
 
 mkdir -p "${exp_dir}"
 python -u -m torch.distributed.run --nproc_per_node 16 \
@@ -22,8 +22,8 @@ python -u -m torch.distributed.run --nproc_per_node 16 \
     --num_classes 400 \
     --checkpoint_dir "${exp_dir}" \
     --auto_resume \
-    --train_list_path ../datasets/kinetics-dataset/k400_resized_1/annotations_svt/train.csv \
-    --val_list_path ../datasets/kinetics-dataset/k400_resized_1/annotations_svt/val.csv \
+    --train_list_path ../datasets/kinetics-dataset/k400_resized_2/annotations_svt/train.csv \
+    --val_list_path ../datasets/kinetics-dataset/k400_resized_2/annotations_svt/val.csv \
     --batch_size 256 \
     --batch_split 1 \
     --auto_augment rand-m7-n4-mstd0.5-inc1 \
@@ -34,6 +34,7 @@ python -u -m torch.distributed.run --nproc_per_node 16 \
     --sampling_rate 16 \
     --num_spatial_views 1 \
     --num_temporal_views 3 \
-    --custom_tap \
-    --custom_tap_indices -2 -3 -4 -5 \
+    --use_decoder_linformer \
+    --decoder_lin_input 1576 \
+    --decoder_lin_k 196 \
   2>&1 | tee "${exp_dir}/train-$(date +"%Y%m%d_%H%M%S").log"
